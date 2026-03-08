@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { submitApp } from '../lib/supabase';
 
+import { CATEGORIES, APP_CONFIG } from '../constants';
+
 const SubmitForm = ({ onCancel, onSuccess, user }) => {
   const [formData, setFormData] = useState({
     name: '',
-    category: 'PWA',
+    category: CATEGORIES.PWA,
     description: '',
-    icon: '🚀',
+    icon: APP_CONFIG.DEFAULT_ICON,
     link: '',
     installSteps: ''
   });
@@ -55,8 +57,8 @@ const SubmitForm = ({ onCancel, onSuccess, user }) => {
               value={formData.category}
               onChange={e => setFormData({...formData, category: e.target.value})}
             >
-              <option value="PWA">PWA</option>
-              <option value="Termux">Termux</option>
+              <option value={CATEGORIES.PWA}>{CATEGORIES.PWA}</option>
+              <option value={CATEGORIES.TERMUX}>{CATEGORIES.TERMUX}</option>
             </select>
           </div>
           <div>

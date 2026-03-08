@@ -1,69 +1,52 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js';
 
-// これらの値は Supabase のプロジェクト設定から取得します
-// 現在はプレースホルダーですが、後でユーザーが自分のキーを入れられるようにします
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://your-project-url.supabase.co'
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key'
+// 商用では .env ファイルから読み込むのが標準です
+// Vite の場合: import.meta.env.VITE_SUPABASE_URL
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://qefyjgpjvfzaiiiakhlw.supabase.co';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFlZnlqZ3BqdmZ6YWlpaWFraGx3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MTY0MzYsImV4cCI6MjA4ODQ5MjQzNn0.-9FtThZ1sN-b2V19bjFUrZYwDln-_BaaKBVHFuOLuJk';
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// デモ用に、Supabaseが未設定の場合は localStorage を使うフォールバック
 export const getApps = async () => {
-  if (supabaseUrl === 'https://your-project-url.supabase.co') {
-    const localApps = localStorage.getItem('my_apps')
-    return localApps ? JSON.parse(localApps) : []
-  }
-  
   const { data, error } = await supabase
     .from('apps')
     .select('*')
-    .order('created_at', { ascending: false })
+    .order('created_at', { ascending: false });
   
-  if (error) throw error
-  return data
-}
+  if (error) throw error;
+  return data;
+};
 
-export const submitApp = async (appData) => {
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user && supabaseUrl !== 'https://your-project-url.supabase.co') {
-    throw new Error('ログインが必要です')
-  }
-  
-  if (supabaseUrl === 'https://your-project-url.supabase.co') {
-    const localApps = JSON.parse(localStorage.getItem('my_apps') || '[]')
-    const newApp = { ...appData, id: Date.now().toString(), created_at: new Date().toISOString(), user_id: user?.id }
-    localStorage.setItem('my_apps', JSON.stringify([newApp, ...localApps]))
-    return newApp
-  }
+export const submitApp = async (app) => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('ログインが必要です');
 
   const { data, error } = await supabase
     .from('apps')
-    .insert([appData])
-    .select()
+    .insert([{ ...app, user_id: user.id }]);
   
-  if (error) throw error
-  return data[0]
-}
-
-// Auth functions
-export const signUp = async (email, password) => {
-  const { data, error } = await supabase.auth.signUp({ email, password })
-  if (error) throw error
-  return data
-}
+  if (error) throw error;
+  return data;
+};
 
 export const signIn = async (email, password) => {
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-  if (error) throw error
-  return data
-}
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) throw error;
+  return data;
+};
+
+export const signUp = async (email, password) => {
+  const { data, error } = await supabase.auth.signUp({ email, password });
+  if (error) throw error;
+  return data;
+};
 
 export const signOut = async () => {
-  const { error } = await supabase.auth.signOut()
-  if (error) throw error
-}
+  const { error } = await supabase.auth.signOut();
+  if (error) throw error;
+};
 
 export const getCurrentUser = async () => {
-  const { data: { user } } = await supabase.auth.getUser()
-  return user
-}
+  const { data: { user } } = await supabase.auth.getUser();
+  return user;
+};

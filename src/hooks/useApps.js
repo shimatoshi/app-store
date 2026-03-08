@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { getApps } from '../lib/supabase';
 
+import { CATEGORIES } from '../constants';
+
 export const useApps = () => {
   const [allApps, setAllApps] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -23,8 +25,8 @@ export const useApps = () => {
 
   const getFilteredApps = (activeTab, searchQuery) => {
     let filtered = allApps;
-    if (activeTab === 'pwa') filtered = allApps.filter(a => a.category === 'PWA');
-    if (activeTab === 'packages') filtered = allApps.filter(a => a.category === 'Termux');
+    if (activeTab === 'pwa') filtered = allApps.filter(a => a.category === CATEGORIES.PWA);
+    if (activeTab === 'packages') filtered = allApps.filter(a => a.category === CATEGORIES.TERMUX);
     
     if (searchQuery) {
       filtered = filtered.filter(app => 
