@@ -48,10 +48,10 @@ const Modal = ({ app, onClose }) => {
               <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">年齢</p>
               <p className="text-lg font-bold dark:text-gray-200">4+</p>
             </div>
-            <div className="text-center">
-              <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">開発元</p>
-              <p className="text-lg font-bold dark:text-gray-200">Dev</p>
-            </div>
+              <div className="text-center">
+                <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">開発元</p>
+                <p className="text-lg font-bold dark:text-gray-200 truncate px-2">{app.developer_name || 'Unknown'}</p>
+              </div>
           </div>
           
           <div className="mb-8">
@@ -193,6 +193,7 @@ const SubmitForm = ({ onCancel, onSuccess }) => {
         description: formData.description,
         icon: formData.icon,
         link: formData.link,
+        developer_name: user?.email ? user.email.split('@')[0] : 'Unknown',
         install_steps: formData.installSteps.split('\n').filter(s => s.trim() !== '')
       };
       await submitApp(appToSubmit);
@@ -445,7 +446,11 @@ function App() {
                     <div className="grid grid-cols-1 gap-3">
                       {allApps.filter(app => app.user_id === user?.id).length > 0 ? (
                         allApps.filter(app => app.user_id === user?.id).map(app => (
-                          <div key={app.id} className="flex items-center gap-3 bg-white dark:bg-gray-900 p-3 rounded-2xl border dark:border-gray-800">
+                          <div 
+                            key={app.id} 
+                            onClick={() => setSelectedApp(app)}
+                            className="flex items-center gap-3 bg-white dark:bg-gray-900 p-3 rounded-2xl border dark:border-gray-800 cursor-pointer active:scale-95 transition-transform"
+                          >
                             <div className="text-2xl w-10 h-10 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-xl">
                               {app.icon}
                             </div>
@@ -454,9 +459,10 @@ function App() {
                               <p className="text-xs text-gray-500 truncate">{app.category}</p>
                             </div>
                             <button 
-                              onClick={async () => {
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 if (confirm('このアプリを削除しますか？')) {
-                                  const { error } = await supabase.from('apps').delete().eq('id', app.id);
+                                  const { error } = supabase.from('apps').delete().eq('id', app.id);
                                   if (error) alert(error.message);
                                   else handleSuccess(); // リスト更新
                                 }
@@ -482,11 +488,17 @@ function App() {
                     <span className="font-medium dark:text-white">アプリを出品する</span>
                     <span className="text-gray-400">＞</span>
                   </button>
-                  <button className="w-full px-6 py-4 text-left border-b dark:border-gray-800 flex justify-between items-center hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                  <button 
+                    onClick={() => alert('購入済み・インストール済み機能は現在準備中です')}
+                    className="w-full px-6 py-4 text-left border-b dark:border-gray-800 flex justify-between items-center hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                  >
                     <span className="font-medium dark:text-white">購入済み / インストール済み</span>
                     <span className="text-gray-400">＞</span>
                   </button>
-                  <button className="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                  <button 
+                    onClick={() => alert('設定機能は現在準備中です')}
+                    className="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                  >
                     <span className="font-medium dark:text-white">設定</span>
                     <span className="text-gray-400">＞</span>
                   </button>
