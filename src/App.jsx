@@ -50,7 +50,9 @@ const Modal = ({ app, onClose }) => {
             </div>
               <div className="text-center">
                 <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">開発元</p>
-                <p className="text-lg font-bold dark:text-gray-200 truncate px-2">{app.developer_name || 'Unknown'}</p>
+                <p className="text-lg font-bold dark:text-gray-200 truncate px-2">
+                  {app.developer_name || (app.user_id ? 'User' : 'Dev')}
+                </p>
               </div>
           </div>
           
@@ -193,7 +195,6 @@ const SubmitForm = ({ onCancel, onSuccess, user }) => {
         description: formData.description,
         icon: formData.icon,
         link: formData.link,
-        developer_name: user?.email ? user.email.split('@')[0] : 'Unknown',
         install_steps: formData.installSteps.split('\n').filter(s => s.trim() !== '')
       };
       await submitApp(appToSubmit);
