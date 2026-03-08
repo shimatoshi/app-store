@@ -92,23 +92,9 @@ const ProfileView: React.FC<ProfileViewProps> = ({ user, allApps, onLogout, onAu
       <div className="bg-white dark:bg-gray-900 rounded-3xl border dark:border-gray-800 overflow-hidden shadow-sm">
         <button 
           onClick={() => user ? onSubmitClick() : onAuthClick()}
-          className="w-full px-6 py-4 text-left border-b dark:border-gray-800 flex justify-between items-center hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-        >
-          <span className="font-medium dark:text-white">アプリを出品する</span>
-          <ChevronRight className="text-gray-400" size={18} />
-        </button>
-        <button 
-          onClick={() => alert('購入済み・インストール済み機能は現在準備中です')}
-          className="w-full px-6 py-4 text-left border-b dark:border-gray-800 flex justify-between items-center hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-        >
-          <span className="font-medium dark:text-white">購入済み / インストール済み</span>
-          <ChevronRight className="text-gray-400" size={18} />
-        </button>
-        <button 
-          onClick={() => alert('設定機能は現在準備中です')}
           className="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
         >
-          <span className="font-medium dark:text-white">設定</span>
+          <span className="font-medium dark:text-white">アプリを出品する</span>
           <ChevronRight className="text-gray-400" size={18} />
         </button>
       </div>

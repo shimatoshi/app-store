@@ -16,6 +16,26 @@ export const getApps = async (): Promise<AppData[]> => {
   return data || [];
 };
 
+export const uploadIcon = async (file: File): Promise<string> => {
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${Math.random()}.${fileExt}`;
+  const filePath = `icons/${fileName}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from('app-icons')
+    .upload(filePath, file);
+
+  if (uploadError) {
+    throw uploadError;
+  }
+
+  const { data } = supabase.storage
+    .from('app-icons')
+    .getPublicUrl(filePath);
+
+  return data.publicUrl;
+};
+
 export const submitApp = async (app: Partial<AppData>): Promise<any> => {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('ログインが必要です');

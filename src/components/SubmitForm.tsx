@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { User } from '@supabase/supabase-js';
+import { Upload, X } from 'lucide-react';
 import { useAppsQuery } from '../hooks/useAppsQuery';
+import { uploadIcon } from '../lib/supabase';
 import { CATEGORIES, APP_CONFIG } from '../constants';
 import Button from './ui/Button';
 import Input from './ui/Input';
+import toast from 'react-hot-toast';
 
 interface SubmitFormProps {
   onCancel: () => void;
@@ -13,6 +16,8 @@ interface SubmitFormProps {
 
 const SubmitForm: React.FC<SubmitFormProps> = ({ onCancel, onSuccess, user }) => {
   const { submitApp, isSubmitting } = useAppsQuery();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     category: CATEGORIES.PWA,
@@ -22,8 +27,37 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ onCancel, onSuccess, user }) =>
     installSteps: ''
   });
 
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type and size
+    if (!file.type.startsWith('image/')) {
+      toast.error('画像ファイルを選択してください');
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('ファイルサイズは2MB以下にしてください');
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const publicUrl = await uploadIcon(file);
+      setFormData({ ...formData, icon: publicUrl });
+      toast.success('アイコンをアップロードしました');
+    } catch (err: any) {
+      console.error('Upload error:', err);
+      toast.error('アップロードに失敗しました。ストレージの設定を確認してください。');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isUploading) return;
+    
     try {
       const appToSubmit = {
         name: formData.name,
@@ -53,7 +87,7 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ onCancel, onSuccess, user }) =>
           placeholder="例: お天気アプリ"
         />
         
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-bold mb-1 dark:text-gray-300">カテゴリ</label>
             <select 
@@ -65,12 +99,37 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ onCancel, onSuccess, user }) =>
               <option value={CATEGORIES.TERMUX}>{CATEGORIES.TERMUX}</option>
             </select>
           </div>
-          <Input 
-            label="アイコン (絵文字/URL)"
-            value={formData.icon}
-            onChange={e => setFormData({...formData, icon: e.target.value})}
-            placeholder="🚀 または https://..."
-          />
+          
+          <div>
+            <label className="block text-sm font-bold mb-1 dark:text-gray-300">アイコン</label>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-xl flex items-center justify-center overflow-hidden border dark:border-gray-700">
+                {formData.icon.startsWith('http') ? (
+                  <img src={formData.icon} alt="icon" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-2xl">{formData.icon}</span>
+                )}
+              </div>
+              <input 
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                className="hidden"
+                accept="image/*"
+              />
+              <Button 
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+                isLoading={isUploading}
+                className="flex-1"
+              >
+                <Upload size={16} className="mr-2" />
+                画像を選択
+              </Button>
+            </div>
+          </div>
         </div>
 
         <Input 
@@ -111,7 +170,7 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ onCancel, onSuccess, user }) =>
           <Button 
             type="submit"
             className="flex-1"
-            isLoading={isSubmitting}
+            isLoading={isSubmitting || isUploading}
           >
             出品する
           </Button>
