@@ -1,4 +1,6 @@
 import React from 'react';
+import { Sun, Moon } from 'lucide-react';
+import { cn } from '../../lib/utils';
 
 interface HeaderProps {
   title: string;
@@ -14,9 +16,12 @@ const Header: React.FC<HeaderProps> = ({ title, darkMode, setDarkMode }) => (
       </h1>
       <button 
         onClick={() => setDarkMode(!darkMode)}
-        className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
+        className={cn(
+          "p-2 rounded-full transition-all active:scale-90",
+          "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
+        )}
       >
-        {darkMode ? '☀️' : '🌙'}
+        {darkMode ? <Sun size={20} /> : <Moon size={20} />}
       </button>
     </div>
   </header>

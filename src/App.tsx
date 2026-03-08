@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Search } from 'lucide-react';
 import { useAuth } from './hooks/useAuth';
 import { useAppsQuery } from './hooks/useAppsQuery';
 
@@ -15,7 +16,7 @@ import { CATEGORIES } from './constants';
 
 const App: React.FC = () => {
   const { user, handleLogout, loading: authLoading } = useAuth();
-  const { apps: allApps, isLoading: appsLoading, getFilteredApps } = useAppsQuery() as any; // Temporary cast for getFilteredApps
+  const { apps: allApps, isLoading: appsLoading } = useAppsQuery();
 
   const [selectedApp, setSelectedApp] = useState<AppData | null>(null);
   const [activeTab, setActiveTab] = useState('home');
@@ -32,7 +33,6 @@ const App: React.FC = () => {
     }
   }, [darkMode]);
 
-  // Filtering logic moved here for simplicity
   const getFilteredAppsLocal = (tab: string, query: string) => {
     let filtered = allApps;
     if (tab === 'pwa') filtered = allApps.filter((a: any) => a.category === CATEGORIES.PWA);
@@ -96,7 +96,7 @@ const App: React.FC = () => {
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onFocus={() => setActiveTab('search')}
                   />
-                  <span className="absolute left-3 top-3 text-gray-500">🔍</span>
+                  <Search className="absolute left-3 top-3 text-gray-500" size={18} />
                 </div>
               </div>
             )}

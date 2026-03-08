@@ -22,19 +22,37 @@ export const useAppsQuery = () => {
     },
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: async (appId: string) => {
-      const { error } = await supabase.from('apps').delete().eq('id', appId);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['apps'] });
-      toast.success('アプリを削除しました');
-    },
-    onError: (error: any) => {
-      toast.error('削除に失敗しました: ' + error.message);
-    },
-  });
+    const deleteMutation = useMutation({
+      mutationFn: async (appId: string) => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('ログインが必要です');
+
+        // まず削除対象が存在するか、自分のものか確認（デバッグ用も兼ねて）
+        const { data: existingApp, error: fetchError } = await supabase
+          .from('apps')
+          .select('id, user_id')
+          .eq('id', appId)
+          .single();
+
+        if (fetchError) throw new Error('アプリの確認に失敗しました');
+        if (existingApp.user_id !== user.id) throw new Error('自分の投稿以外は削除できません');
+
+        const { error } = await supabase
+          .from('apps')
+          .delete()
+          .eq('id', appId);
+        
+        if (error) throw error;
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['apps'] });
+        toast.success('アプリを削除しました');
+      },
+      onError: (error: any) => {
+        console.error('Delete error:', error);
+        toast.error('削除に失敗しました: ' + (error.message || '不明なエラー'));
+      },
+    });
 
   return {
     apps: appsQuery.data || [],

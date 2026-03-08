@@ -1,5 +1,6 @@
 import React from 'react';
 import { User } from '@supabase/supabase-js';
+import { Trash2, ChevronRight } from 'lucide-react';
 import { AppData } from '../../types';
 import { useAppsQuery } from '../../hooks/useAppsQuery';
 import Button from '../ui/Button';
@@ -77,7 +78,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ user, allApps, onLogout, onAu
                     }}
                     className="text-red-500 p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                   >
-                    🗑️
+                      <Trash2 size={18} />
                   </button>
                 </div>
               ))
@@ -94,21 +95,21 @@ const ProfileView: React.FC<ProfileViewProps> = ({ user, allApps, onLogout, onAu
           className="w-full px-6 py-4 text-left border-b dark:border-gray-800 flex justify-between items-center hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
         >
           <span className="font-medium dark:text-white">アプリを出品する</span>
-          <span className="text-gray-400">＞</span>
+          <ChevronRight className="text-gray-400" size={18} />
         </button>
         <button 
           onClick={() => alert('購入済み・インストール済み機能は現在準備中です')}
           className="w-full px-6 py-4 text-left border-b dark:border-gray-800 flex justify-between items-center hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
         >
           <span className="font-medium dark:text-white">購入済み / インストール済み</span>
-          <span className="text-gray-400">＞</span>
+          <ChevronRight className="text-gray-400" size={18} />
         </button>
         <button 
           onClick={() => alert('設定機能は現在準備中です')}
           className="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
         >
           <span className="font-medium dark:text-white">設定</span>
-          <span className="text-gray-400">＞</span>
+          <ChevronRight className="text-gray-400" size={18} />
         </button>
       </div>
     </div>

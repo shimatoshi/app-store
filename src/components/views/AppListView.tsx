@@ -1,4 +1,5 @@
 import React from 'react';
+import { ChevronRight } from 'lucide-react';
 import { AppData } from '../../types';
 
 interface AppListViewProps {
@@ -14,7 +15,7 @@ const AppListView: React.FC<AppListViewProps> = ({ apps, searchQuery, onAppSelec
         <h3 className="text-xl font-bold dark:text-white">
           {searchQuery ? '検索結果' : 'おすすめ'}
         </h3>
-        {!searchQuery && <button className="text-blue-500 text-sm font-medium">すべて表示</button>}
+        {!searchQuery && (<button className="text-blue-500 text-sm font-medium flex items-center gap-0.5">すべて表示<ChevronRight size={16} /></button>)}
       </div>
       
       <div className="grid grid-cols-1 gap-4">

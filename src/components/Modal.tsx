@@ -1,4 +1,5 @@
 import React from 'react';
+import { X, Download, ExternalLink, Code } from 'lucide-react';
 import { AppData } from '../types';
 
 interface ModalProps {
@@ -15,7 +16,7 @@ const Modal: React.FC<ModalProps> = ({ app, onClose }) => {
         {/* Modal Header */}
         <div className="sticky top-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md px-6 py-4 flex justify-between items-center border-b dark:border-gray-800 z-10">
           <span className="font-bold dark:text-white">詳細</span>
-          <button onClick={onClose} className="bg-gray-100 dark:bg-gray-800 text-gray-500 rounded-full w-8 h-8 flex items-center justify-center font-bold">✕</button>
+          <button onClick={onClose} className="bg-gray-100 dark:bg-gray-800 text-gray-500 rounded-full w-8 h-8 flex items-center justify-center font-bold"><X size={18} /></button>
         </div>
 
         <div className="overflow-y-auto p-6">
