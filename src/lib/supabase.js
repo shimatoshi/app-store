@@ -24,18 +24,43 @@ export const getApps = async () => {
 }
 
 export const submitApp = async (appData) => {
+  const { data: { user } } = await supabase.auth.getUser()
+  
   if (supabaseUrl === 'https://your-project-url.supabase.co') {
     const localApps = JSON.parse(localStorage.getItem('my_apps') || '[]')
-    const newApp = { ...appData, id: Date.now().toString(), rating: 5.0, created_at: new Date().toISOString() }
+    const newApp = { ...appData, id: Date.now().toString(), rating: 5.0, created_at: new Date().toISOString(), user_id: user?.id }
     localStorage.setItem('my_apps', JSON.stringify([newApp, ...localApps]))
     return newApp
   }
 
   const { data, error } = await supabase
     .from('apps')
-    .insert([appData])
+    .insert([{ ...appData, user_id: user?.id }])
     .select()
   
   if (error) throw error
   return data[0]
+}
+
+// Auth functions
+export const signUp = async (email, password) => {
+  const { data, error } = await supabase.auth.signUp({ email, password })
+  if (error) throw error
+  return data
+}
+
+export const signIn = async (email, password) => {
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+  if (error) throw error
+  return data
+}
+
+export const signOut = async () => {
+  const { error } = await supabase.auth.signOut()
+  if (error) throw error
+}
+
+export const getCurrentUser = async () => {
+  const { data: { user } } = await supabase.auth.getUser()
+  return user
 }

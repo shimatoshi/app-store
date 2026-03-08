@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { apps as initialApps } from './data/apps';
-import { getApps, submitApp } from './lib/supabase';
+import { getApps, submitApp, signIn, signUp, signOut, getCurrentUser, supabase } from './lib/supabase';
 
 const AppCard = ({ app, onClick }) => (
   <div 
@@ -95,6 +95,87 @@ const Modal = ({ app, onClose }) => {
           </a>
         </div>
       </div>
+    </div>
+  );
+};
+
+const AuthForm = ({ onAuthSuccess, onCancel }) => {
+  const [isLogin, setIsLogin] = useState(true);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    try {
+      if (isLogin) {
+        await signIn(email, password);
+      } else {
+        await signUp(email, password);
+        alert('確認メールを送信しました（設定によっては不要です）。ログインしてください。');
+        setIsLogin(true);
+        return;
+      }
+      onAuthSuccess();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="bg-white dark:bg-gray-900 p-6 rounded-3xl shadow-xl border dark:border-gray-800 animate-in fade-in zoom-in duration-300">
+      <h2 className="text-2xl font-bold mb-6 dark:text-white">{isLogin ? 'ログイン' : '新規登録'}</h2>
+      {error && <p className="text-red-500 text-sm mb-4 bg-red-50 dark:bg-red-900/20 p-3 rounded-xl">{error}</p>}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-sm font-bold mb-1 dark:text-gray-300">メールアドレス</label>
+          <input 
+            required
+            type="email"
+            className="w-full bg-gray-100 dark:bg-gray-800 border-none rounded-xl py-3 px-4 dark:text-white"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            placeholder="example@mail.com"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-bold mb-1 dark:text-gray-300">パスワード</label>
+          <input 
+            required
+            type="password"
+            className="w-full bg-gray-100 dark:bg-gray-800 border-none rounded-xl py-3 px-4 dark:text-white"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            placeholder="••••••••"
+          />
+        </div>
+        <button 
+          type="submit"
+          disabled={loading}
+          className="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold shadow-lg shadow-blue-500/30 disabled:opacity-50 mt-4"
+        >
+          {loading ? '処理中...' : (isLogin ? 'ログイン' : '登録する')}
+        </button>
+        <button 
+          type="button"
+          onClick={() => setIsLogin(!isLogin)}
+          className="w-full text-blue-600 dark:text-blue-400 text-sm font-bold py-2"
+        >
+          {isLogin ? 'アカウントをお持ちでない方はこちら' : 'すでにアカウントをお持ちの方はこちら'}
+        </button>
+        <button 
+          type="button"
+          onClick={onCancel}
+          className="w-full text-gray-500 text-sm font-medium py-2"
+        >
+          キャンセル
+        </button>
+      </form>
     </div>
   );
 };
@@ -224,17 +305,31 @@ function App() {
   const [darkMode, setDarkMode] = useState(false);
   const [allApps, setAllApps] = useState(initialApps);
   const [showSubmitForm, setShowSubmitForm] = useState(false);
+  const [user, setUser] = useState(null);
+  const [showAuthForm, setShowAuthForm] = useState(false);
 
   useEffect(() => {
-    const loadApps = async () => {
-      try {
-        const customApps = await getApps();
-        setAllApps([...initialApps, ...customApps]);
-      } catch (err) {
-        console.error('Failed to load apps:', err);
-      }
+    const init = async () => {
+      const currentUser = await getCurrentUser();
+      setUser(currentUser);
+      
+      const loadApps = async () => {
+        try {
+          const customApps = await getApps();
+          setAllApps([...initialApps, ...customApps]);
+        } catch (err) {
+          console.error('Failed to load apps:', err);
+        }
+      };
+      loadApps();
     };
-    loadApps();
+    init();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -268,13 +363,18 @@ function App() {
     setActiveTab('home');
   };
 
+  const handleLogout = async () => {
+    await signOut();
+    setActiveTab('home');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-black transition-colors duration-300 pb-20">
       {/* Header */}
       <header className="bg-white/80 dark:bg-black/80 backdrop-blur-md border-b dark:border-gray-800 sticky top-0 z-20 px-4 py-3">
         <div className="max-w-2xl mx-auto flex justify-between items-center">
           <h1 className="text-2xl font-extrabold tracking-tight dark:text-white">
-            {showSubmitForm ? '出品' : (
+            {showSubmitForm ? '出品' : showAuthForm ? '認証' : (
               <>
                 {activeTab === 'home' && '見つける'}
                 {activeTab === 'pwa' && 'PWAアプリ'}
@@ -294,7 +394,9 @@ function App() {
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-6">
-        {showSubmitForm ? (
+        {showAuthForm ? (
+          <AuthForm onAuthSuccess={() => setShowAuthForm(false)} onCancel={() => setShowAuthForm(false)} />
+        ) : showSubmitForm ? (
           <SubmitForm onCancel={() => setShowSubmitForm(false)} onSuccess={handleSuccess} />
         ) : (
           <>
@@ -321,21 +423,68 @@ function App() {
                 <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl border dark:border-gray-800 shadow-sm">
                   <div className="flex items-center gap-4 mb-6">
                     <div className="w-16 h-16 bg-gradient-to-tr from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-2xl text-white font-bold">
-                      U
+                      {user ? user.email[0].toUpperCase() : 'U'}
                     </div>
                     <div>
-                      <h2 className="text-xl font-bold dark:text-white">ゲストユーザー</h2>
-                      <p className="text-gray-500 text-sm">ログインしてアプリを出品しよう</p>
+                      <h2 className="text-xl font-bold dark:text-white">{user ? user.email.split('@')[0] : 'ゲストユーザー'}</h2>
+                      <p className="text-gray-500 text-sm">{user ? user.email : 'ログインしてアプリを出品しよう'}</p>
                     </div>
                   </div>
-                  <button className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors">
-                    ログイン / 新規登録
-                  </button>
+                  {user ? (
+                    <button 
+                      onClick={handleLogout}
+                      className="w-full bg-gray-100 dark:bg-gray-800 text-red-500 py-3 rounded-xl font-bold hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      ログアウト
+                    </button>
+                  ) : (
+                    <button 
+                      onClick={() => setShowAuthForm(true)}
+                      className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors"
+                    >
+                      ログイン / 新規登録
+                    </button>
+                  )}
                 </div>
                 
+                {user && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-bold dark:text-white px-2">自分の投稿</h3>
+                    <div className="grid grid-cols-1 gap-3">
+                      {allApps.filter(app => app.user_id === user.id).length > 0 ? (
+                        allApps.filter(app => app.user_id === user.id).map(app => (
+                          <div key={app.id} className="flex items-center gap-3 bg-white dark:bg-gray-900 p-3 rounded-2xl border dark:border-gray-800">
+                            <div className="text-2xl w-10 h-10 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-xl">
+                              {app.icon}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-bold text-sm dark:text-white truncate">{app.name}</h4>
+                              <p className="text-xs text-gray-500 truncate">{app.category}</p>
+                            </div>
+                            <button 
+                              onClick={async () => {
+                                if (confirm('このアプリを削除しますか？')) {
+                                  const { error } = await supabase.from('apps').delete().eq('id', app.id);
+                                  if (error) alert(error.message);
+                                  else handleSuccess(); // リスト更新
+                                }
+                              }}
+                              className="text-red-500 p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
+                            >
+                              🗑️
+                            </button>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-gray-500 text-center py-4">まだ投稿したアプリはありません</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 <div className="bg-white dark:bg-gray-900 rounded-2xl border dark:border-gray-800 overflow-hidden">
                   <button 
-                    onClick={() => setShowSubmitForm(true)}
+                    onClick={() => user ? setShowSubmitForm(true) : setShowAuthForm(true)}
                     className="w-full px-6 py-4 text-left border-b dark:border-gray-800 flex justify-between items-center hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                   >
                     <span className="font-medium dark:text-white">アプリを出品する</span>
@@ -413,11 +562,11 @@ function App() {
       {/* Bottom Navigation Bar */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-black/90 backdrop-blur-lg border-t dark:border-gray-800 px-6 py-2 z-30">
         <div className="max-w-2xl mx-auto flex justify-between items-center">
-          <NavButton active={activeTab === 'home' && !showSubmitForm} onClick={() => {setActiveTab('home'); setShowSubmitForm(false);}} icon="🏠" label="ホーム" />
-          <NavButton active={activeTab === 'pwa' && !showSubmitForm} onClick={() => {setActiveTab('pwa'); setShowSubmitForm(false);}} icon="📱" label="PWA" />
-          <NavButton active={activeTab === 'packages' && !showSubmitForm} onClick={() => {setActiveTab('packages'); setShowSubmitForm(false);}} icon="📦" label="パッケージ" />
-          <NavButton active={activeTab === 'search' && !showSubmitForm} onClick={() => {setActiveTab('search'); setShowSubmitForm(false);}} icon="🔍" label="検索" />
-          <NavButton active={activeTab === 'profile' || showSubmitForm} onClick={() => setActiveTab('profile')} icon="👤" label="マイページ" />
+          <NavButton active={activeTab === 'home' && !showSubmitForm && !showAuthForm} onClick={() => {setActiveTab('home'); setShowSubmitForm(false); setShowAuthForm(false);}} icon="🏠" label="ホーム" />
+          <NavButton active={activeTab === 'pwa' && !showSubmitForm && !showAuthForm} onClick={() => {setActiveTab('pwa'); setShowSubmitForm(false); setShowAuthForm(false);}} icon="📱" label="PWA" />
+          <NavButton active={activeTab === 'packages' && !showSubmitForm && !showAuthForm} onClick={() => {setActiveTab('packages'); setShowSubmitForm(false); setShowAuthForm(false);}} icon="📦" label="パッケージ" />
+          <NavButton active={activeTab === 'search' && !showSubmitForm && !showAuthForm} onClick={() => {setActiveTab('search'); setShowSubmitForm(false); setShowAuthForm(false);}} icon="🔍" label="検索" />
+          <NavButton active={activeTab === 'profile' || showSubmitForm || showAuthForm} onClick={() => setActiveTab('profile')} icon="👤" label="マイページ" />
         </div>
       </nav>
 
