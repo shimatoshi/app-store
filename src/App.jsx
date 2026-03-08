@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { apps as initialApps } from './data/apps';
 import { getApps, submitApp, signIn, signUp, signOut, getCurrentUser, supabase } from './lib/supabase';
 
 const AppCard = ({ app, onClick }) => (
@@ -10,10 +9,7 @@ const AppCard = ({ app, onClick }) => (
     <div className="text-5xl mb-4 transform group-hover:scale-110 transition-transform duration-200">{app.icon}</div>
     <h3 className="font-bold text-gray-800 dark:text-gray-100 truncate mb-1">{app.name}</h3>
     <p className="text-xs text-google-gray dark:text-gray-400 mb-3">{app.category}</p>
-    <div className="flex items-center justify-between">
-      <div className="flex items-center text-xs text-orange-500 font-bold">
-        <span>★ {app.rating}</span>
-      </div>
+    <div className="flex items-center justify-end">
       <button className="text-xs bg-blue-50 dark:bg-blue-900/30 text-google-blue dark:text-blue-400 px-3 py-1 rounded-full font-bold group-hover:bg-google-blue group-hover:text-white transition-colors">
         詳細
       </button>
@@ -47,11 +43,7 @@ const Modal = ({ app, onClose }) => {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-3 gap-4 py-4 border-y dark:border-gray-800 mb-8">
-            <div className="text-center border-r dark:border-gray-800">
-              <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">評価</p>
-              <p className="text-lg font-bold dark:text-gray-200">{app.rating} ★</p>
-            </div>
+          <div className="grid grid-cols-2 gap-4 py-4 border-y dark:border-gray-800 mb-8">
             <div className="text-center border-r dark:border-gray-800">
               <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">年齢</p>
               <p className="text-lg font-bold dark:text-gray-200">4+</p>
@@ -303,7 +295,7 @@ function App() {
   const [activeTab, setActiveTab] = useState('home');
   const [searchQuery, setSearchQuery] = useState('');
   const [darkMode, setDarkMode] = useState(false);
-  const [allApps, setAllApps] = useState(initialApps);
+  const [allApps, setAllApps] = useState([]);
   const [showSubmitForm, setShowSubmitForm] = useState(false);
   const [user, setUser] = useState(null);
   const [showAuthForm, setShowAuthForm] = useState(false);
@@ -316,7 +308,7 @@ function App() {
       const loadApps = async () => {
         try {
           const customApps = await getApps();
-          setAllApps([...initialApps, ...customApps]);
+          setAllApps(customApps);
         } catch (err) {
           console.error('Failed to load apps:', err);
         }
@@ -359,7 +351,7 @@ function App() {
   const handleSuccess = async () => {
     setShowSubmitForm(false);
     const customApps = await getApps();
-    setAllApps([...initialApps, ...customApps]);
+    setAllApps(customApps);
     setActiveTab('home');
   };
 
@@ -503,15 +495,15 @@ function App() {
             ) : (
               <div className="space-y-8">
                 {/* Featured Section */}
-                {activeTab === 'home' && !searchQuery && (
+                {activeTab === 'home' && !searchQuery && allApps.length > 0 && (
                   <section>
                     <div className="bg-gradient-to-br from-indigo-600 to-blue-500 rounded-3xl p-6 text-white shadow-lg shadow-blue-500/20 relative overflow-hidden">
                       <div className="relative z-10">
                         <p className="text-xs font-bold uppercase tracking-wider opacity-80 mb-1">注目のパッケージ</p>
-                        <h2 className="text-3xl font-extrabold mb-4">Termuxで<br/>開発環境を爆速構築</h2>
-                        <button className="bg-white text-blue-600 px-5 py-2 rounded-full font-bold text-sm">今すぐ入手</button>
+                        <h2 className="text-3xl font-extrabold mb-4">{allApps[0].name}</h2>
+                        <button onClick={() => setSelectedApp(allApps[0])} className="bg-white text-blue-600 px-5 py-2 rounded-full font-bold text-sm">今すぐ入手</button>
                       </div>
-                      <div className="absolute right-[-20px] bottom-[-20px] opacity-20 rotate-12 select-none" style={{fontSize: '150px'}}>💻</div>
+                      <div className="absolute right-[-20px] bottom-[-20px] opacity-20 rotate-12 select-none" style={{fontSize: '150px'}}>{allApps[0].icon}</div>
                     </div>
                   </section>
                 )}
@@ -525,7 +517,7 @@ function App() {
                   </div>
                   
                   <div className="grid grid-cols-1 gap-4">
-                    {filteredApps.map(app => (
+                    {filteredApps.length > 0 ? filteredApps.map(app => (
                       <div 
                         key={app.id}
                         onClick={() => setSelectedApp(app)}
@@ -541,7 +533,6 @@ function App() {
                             <span className="text-xs font-bold text-blue-500 bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded">
                               {app.category}
                             </span>
-                            <span className="text-xs text-gray-400">★ {app.rating}</span>
                           </div>
                         </div>
                         <div className="pl-2">
@@ -550,7 +541,9 @@ function App() {
                           </button>
                         </div>
                       </div>
-                    ))}
+                    )) : (
+                      <p className="text-center text-gray-500 py-10">アプリが見つかりません</p>
+                    )}
                   </div>
                 </section>
               </div>

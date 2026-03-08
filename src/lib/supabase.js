@@ -25,10 +25,13 @@ export const getApps = async () => {
 
 export const submitApp = async (appData) => {
   const { data: { user } } = await supabase.auth.getUser()
+  if (!user && supabaseUrl !== 'https://your-project-url.supabase.co') {
+    throw new Error('ログインが必要です')
+  }
   
   if (supabaseUrl === 'https://your-project-url.supabase.co') {
     const localApps = JSON.parse(localStorage.getItem('my_apps') || '[]')
-    const newApp = { ...appData, id: Date.now().toString(), rating: 5.0, created_at: new Date().toISOString(), user_id: user?.id }
+    const newApp = { ...appData, id: Date.now().toString(), created_at: new Date().toISOString(), user_id: user?.id }
     localStorage.setItem('my_apps', JSON.stringify([newApp, ...localApps]))
     return newApp
   }
