@@ -1,14 +1,19 @@
 import React, { useState } from 'react';
 import { signIn, signUp } from '../lib/supabase';
 
-const AuthForm = ({ onAuthSuccess, onCancel }) => {
+interface AuthFormProps {
+  onAuthSuccess: () => void;
+  onCancel: () => void;
+}
+
+const AuthForm: React.FC<AuthFormProps> = ({ onAuthSuccess, onCancel }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
@@ -22,7 +27,7 @@ const AuthForm = ({ onAuthSuccess, onCancel }) => {
         return;
       }
       onAuthSuccess();
-    } catch (err) {
+    } catch (err: any) {
       setError(err.message);
     } finally {
       setLoading(false);

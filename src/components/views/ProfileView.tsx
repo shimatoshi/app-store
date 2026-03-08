@@ -1,17 +1,29 @@
 import React from 'react';
+import { User } from '@supabase/supabase-js';
 import { supabase } from '../../lib/supabase';
+import { AppData } from '../../types';
 
-const ProfileView = ({ user, allApps, onLogout, onAuthClick, onSubmitClick, onAppSelect, onRefresh }) => {
+interface ProfileViewProps {
+  user: User | null;
+  allApps: AppData[];
+  onLogout: () => void;
+  onAuthClick: () => void;
+  onSubmitClick: () => void;
+  onAppSelect: (app: AppData) => void;
+  onRefresh: () => void;
+}
+
+const ProfileView: React.FC<ProfileViewProps> = ({ user, allApps, onLogout, onAuthClick, onSubmitClick, onAppSelect, onRefresh }) => {
   return (
     <div className="space-y-6">
       <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl border dark:border-gray-800 shadow-sm">
         <div className="flex items-center gap-4 mb-6">
           <div className="w-16 h-16 bg-gradient-to-tr from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-2xl text-white font-bold">
-            {user ? user.email[0].toUpperCase() : 'U'}
+            {user?.email ? user.email[0].toUpperCase() : 'U'}
           </div>
           <div>
-            <h2 className="text-xl font-bold dark:text-white">{user ? user.email.split('@')[0] : 'ゲストユーザー'}</h2>
-            <p className="text-gray-500 text-sm">{user ? user.email : 'ログインしてアプリを出品しよう'}</p>
+            <h2 className="text-xl font-bold dark:text-white">{user?.email ? user.email.split('@')[0] : 'ゲストユーザー'}</h2>
+            <p className="text-gray-500 text-sm">{user?.email ? user.email : 'ログインしてアプリを出品しよう'}</p>
           </div>
         </div>
         {user ? (
@@ -61,7 +73,7 @@ const ProfileView = ({ user, allApps, onLogout, onAuthClick, onSubmitClick, onAp
                           const { error } = await supabase.from('apps').delete().eq('id', app.id);
                           if (error) throw error;
                           onRefresh();
-                        } catch (err) {
+                        } catch (err: any) {
                           alert('削除に失敗しました: ' + err.message);
                         }
                       }

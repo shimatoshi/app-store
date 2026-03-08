@@ -1,9 +1,15 @@
 import React, { useState } from 'react';
+import { User } from '@supabase/supabase-js';
 import { submitApp } from '../lib/supabase';
-
 import { CATEGORIES, APP_CONFIG } from '../constants';
 
-const SubmitForm = ({ onCancel, onSuccess, user }) => {
+interface SubmitFormProps {
+  onCancel: () => void;
+  onSuccess: () => void;
+  user: User | null;
+}
+
+const SubmitForm: React.FC<SubmitFormProps> = ({ onCancel, onSuccess, user }) => {
   const [formData, setFormData] = useState({
     name: '',
     category: CATEGORIES.PWA,
@@ -14,7 +20,7 @@ const SubmitForm = ({ onCancel, onSuccess, user }) => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
@@ -24,11 +30,12 @@ const SubmitForm = ({ onCancel, onSuccess, user }) => {
         description: formData.description,
         icon: formData.icon,
         link: formData.link,
+        developer_name: user?.email ? user.email.split('@')[0] : 'Unknown',
         install_steps: formData.installSteps.split('\n').filter(s => s.trim() !== '')
       };
       await submitApp(appToSubmit);
       onSuccess();
-    } catch (err) {
+    } catch (err: any) {
       alert('エラーが発生しました: ' + err.message);
     } finally {
       setIsSubmitting(false);

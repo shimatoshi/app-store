@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { getApps } from '../lib/supabase';
-
+import { AppData } from '../types';
 import { CATEGORIES } from '../constants';
 
 export const useApps = () => {
-  const [allApps, setAllApps] = useState([]);
+  const [allApps, setAllApps] = useState<AppData[]>([]);
   const [loading, setLoading] = useState(true);
 
   const loadApps = async () => {
@@ -23,7 +23,7 @@ export const useApps = () => {
     loadApps();
   }, []);
 
-  const getFilteredApps = (activeTab, searchQuery) => {
+  const getFilteredApps = (activeTab: string, searchQuery: string) => {
     let filtered = allApps;
     if (activeTab === 'pwa') filtered = allApps.filter(a => a.category === CATEGORIES.PWA);
     if (activeTab === 'packages') filtered = allApps.filter(a => a.category === CATEGORIES.TERMUX);

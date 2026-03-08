@@ -1,6 +1,12 @@
 import React from 'react';
+import { AppData } from '../types';
 
-const Modal = ({ app, onClose }) => {
+interface ModalProps {
+  app: AppData | null;
+  onClose: () => void;
+}
+
+const Modal: React.FC<ModalProps> = ({ app, onClose }) => {
   if (!app) return null;
   const isImageUrl = app.icon && (app.icon.startsWith('http') || app.icon.startsWith('/'));
   return (

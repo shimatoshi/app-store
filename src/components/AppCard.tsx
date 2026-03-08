@@ -1,6 +1,12 @@
 import React from 'react';
+import { AppData } from '../types';
 
-const AppCard = ({ app, onClick }) => {
+interface AppCardProps {
+  app: AppData;
+  onClick: (app: AppData) => void;
+}
+
+const AppCard: React.FC<AppCardProps> = ({ app, onClick }) => {
   const isImageUrl = app.icon && (app.icon.startsWith('http') || app.icon.startsWith('/'));
   return (
     <div 

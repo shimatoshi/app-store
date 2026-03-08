@@ -10,12 +10,13 @@ import AppListView from './components/views/AppListView';
 import Modal from './components/Modal';
 import AuthForm from './components/AuthForm';
 import SubmitForm from './components/SubmitForm';
+import { AppData } from './types';
 
-function App() {
+const App: React.FC = () => {
   const { user, handleLogout, loading: authLoading } = useAuth();
   const { allApps, loadApps, getFilteredApps, loading: appsLoading } = useApps();
 
-  const [selectedApp, setSelectedApp] = useState(null);
+  const [selectedApp, setSelectedApp] = useState<AppData | null>(null);
   const [activeTab, setActiveTab] = useState('home');
   const [searchQuery, setSearchQuery] = useState('');
   const [darkMode, setDarkMode] = useState(false);

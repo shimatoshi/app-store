@@ -1,6 +1,12 @@
 import React from 'react';
 
-const Header = ({ title, darkMode, setDarkMode }) => (
+interface HeaderProps {
+  title: string;
+  darkMode: boolean;
+  setDarkMode: (dark: boolean) => void;
+}
+
+const Header: React.FC<HeaderProps> = ({ title, darkMode, setDarkMode }) => (
   <header className="bg-white/80 dark:bg-black/80 backdrop-blur-md border-b dark:border-gray-800 sticky top-0 z-20 px-4 py-3">
     <div className="max-w-2xl mx-auto flex justify-between items-center">
       <h1 className="text-2xl font-extrabold tracking-tight dark:text-white">

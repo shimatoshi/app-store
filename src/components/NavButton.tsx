@@ -1,6 +1,13 @@
 import React from 'react';
 
-const NavButton = ({ active, onClick, icon, label }) => (
+interface NavButtonProps {
+  active: boolean;
+  onClick: () => void;
+  icon: string;
+  label: string;
+}
+
+const NavButton: React.FC<NavButtonProps> = ({ active, onClick, icon, label }) => (
   <button 
     onClick={onClick}
     className={`flex flex-col items-center gap-1 transition-colors ${active ? 'text-blue-600' : 'text-gray-400'}`}

@@ -1,6 +1,13 @@
 import React from 'react';
+import { AppData } from '../../types';
 
-const AppListView = ({ apps, searchQuery, onAppSelect }) => {
+interface AppListViewProps {
+  apps: AppData[];
+  searchQuery: string;
+  onAppSelect: (app: AppData) => void;
+}
+
+const AppListView: React.FC<AppListViewProps> = ({ apps, searchQuery, onAppSelect }) => {
   return (
     <section>
       <div className="flex justify-between items-end mb-4">
