@@ -35,7 +35,7 @@ export const submitApp = async (appData) => {
 
   const { data, error } = await supabase
     .from('apps')
-    .insert([{ ...appData, user_id: user?.id }])
+    .insert([appData])
     .select()
   
   if (error) throw error

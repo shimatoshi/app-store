@@ -451,8 +451,8 @@ function App() {
                   <div className="space-y-4">
                     <h3 className="text-lg font-bold dark:text-white px-2">自分の投稿</h3>
                     <div className="grid grid-cols-1 gap-3">
-                      {allApps.filter(app => app.user_id === user.id).length > 0 ? (
-                        allApps.filter(app => app.user_id === user.id).map(app => (
+                      {allApps.filter(app => app.user_id === user?.id).length > 0 ? (
+                        allApps.filter(app => app.user_id === user?.id).map(app => (
                           <div key={app.id} className="flex items-center gap-3 bg-white dark:bg-gray-900 p-3 rounded-2xl border dark:border-gray-800">
                             <div className="text-2xl w-10 h-10 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-xl">
                               {app.icon}
