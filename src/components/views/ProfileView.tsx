@@ -1,7 +1,8 @@
 import React from 'react';
 import { User } from '@supabase/supabase-js';
-import { supabase } from '../../lib/supabase';
 import { AppData } from '../../types';
+import { useAppsQuery } from '../../hooks/useAppsQuery';
+import Button from '../ui/Button';
 
 interface ProfileViewProps {
   user: User | null;
@@ -10,15 +11,16 @@ interface ProfileViewProps {
   onAuthClick: () => void;
   onSubmitClick: () => void;
   onAppSelect: (app: AppData) => void;
-  onRefresh: () => void;
 }
 
-const ProfileView: React.FC<ProfileViewProps> = ({ user, allApps, onLogout, onAuthClick, onSubmitClick, onAppSelect, onRefresh }) => {
+const ProfileView: React.FC<ProfileViewProps> = ({ user, allApps, onLogout, onAuthClick, onSubmitClick, onAppSelect }) => {
+  const { deleteApp } = useAppsQuery();
+
   return (
-    <div className="space-y-6">
-      <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl border dark:border-gray-800 shadow-sm">
+    <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
+      <div className="bg-white dark:bg-gray-900 p-6 rounded-3xl border dark:border-gray-800 shadow-sm">
         <div className="flex items-center gap-4 mb-6">
-          <div className="w-16 h-16 bg-gradient-to-tr from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-2xl text-white font-bold">
+          <div className="w-16 h-16 bg-gradient-to-tr from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center text-2xl text-white font-bold shadow-inner">
             {user?.email ? user.email[0].toUpperCase() : 'U'}
           </div>
           <div>
@@ -27,19 +29,20 @@ const ProfileView: React.FC<ProfileViewProps> = ({ user, allApps, onLogout, onAu
           </div>
         </div>
         {user ? (
-          <button 
+          <Button 
+            variant="danger"
+            className="w-full"
             onClick={onLogout}
-            className="w-full bg-gray-100 dark:bg-gray-800 text-red-500 py-3 rounded-xl font-bold hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
           >
             ログアウト
-          </button>
+          </Button>
         ) : (
-          <button 
+          <Button 
+            className="w-full"
             onClick={onAuthClick}
-            className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors"
           >
             ログイン / 新規登録
-          </button>
+          </Button>
         )}
       </div>
       
@@ -69,16 +72,10 @@ const ProfileView: React.FC<ProfileViewProps> = ({ user, allApps, onLogout, onAu
                     onClick={async (e) => {
                       e.stopPropagation();
                       if (confirm('このアプリを削除しますか？')) {
-                        try {
-                          const { error } = await supabase.from('apps').delete().eq('id', app.id);
-                          if (error) throw error;
-                          onRefresh();
-                        } catch (err: any) {
-                          alert('削除に失敗しました: ' + err.message);
-                        }
+                        await deleteApp(app.id);
                       }
                     }}
-                    className="text-red-500 p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
+                    className="text-red-500 p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                   >
                     🗑️
                   </button>
@@ -91,7 +88,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ user, allApps, onLogout, onAu
         </div>
       )}
 
-      <div className="bg-white dark:bg-gray-900 rounded-2xl border dark:border-gray-800 overflow-hidden">
+      <div className="bg-white dark:bg-gray-900 rounded-3xl border dark:border-gray-800 overflow-hidden shadow-sm">
         <button 
           onClick={() => user ? onSubmitClick() : onAuthClick()}
           className="w-full px-6 py-4 text-left border-b dark:border-gray-800 flex justify-between items-center hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"

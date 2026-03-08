@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from './hooks/useAuth';
-import { useApps } from './hooks/useApps';
+import { useAppsQuery } from './hooks/useAppsQuery';
 
 import Header from './components/layout/Header';
 import BottomNav from './components/layout/BottomNav';
@@ -11,10 +11,11 @@ import Modal from './components/Modal';
 import AuthForm from './components/AuthForm';
 import SubmitForm from './components/SubmitForm';
 import { AppData } from './types';
+import { CATEGORIES } from './constants';
 
 const App: React.FC = () => {
   const { user, handleLogout, loading: authLoading } = useAuth();
-  const { allApps, loadApps, getFilteredApps, loading: appsLoading } = useApps();
+  const { apps: allApps, isLoading: appsLoading, getFilteredApps } = useAppsQuery() as any; // Temporary cast for getFilteredApps
 
   const [selectedApp, setSelectedApp] = useState<AppData | null>(null);
   const [activeTab, setActiveTab] = useState('home');
@@ -31,11 +32,25 @@ const App: React.FC = () => {
     }
   }, [darkMode]);
 
-  const filteredApps = getFilteredApps(activeTab, searchQuery);
+  // Filtering logic moved here for simplicity
+  const getFilteredAppsLocal = (tab: string, query: string) => {
+    let filtered = allApps;
+    if (tab === 'pwa') filtered = allApps.filter((a: any) => a.category === CATEGORIES.PWA);
+    if (tab === 'packages') filtered = allApps.filter((a: any) => a.category === CATEGORIES.TERMUX);
+    
+    if (query) {
+      filtered = filtered.filter((app: any) => 
+        app.name.toLowerCase().includes(query.toLowerCase()) || 
+        app.description.toLowerCase().includes(query.toLowerCase())
+      );
+    }
+    return filtered;
+  };
 
-  const handleSuccess = async () => {
+  const filteredApps = getFilteredAppsLocal(activeTab, searchQuery);
+
+  const handleSuccess = () => {
     setShowSubmitForm(false);
-    await loadApps();
     setActiveTab('home');
   };
 
@@ -55,7 +70,7 @@ const App: React.FC = () => {
   const isLoading = authLoading || appsLoading;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-black transition-colors duration-300 pb-20">
+    <div className="min-h-screen bg-gray-50 dark:bg-black transition-colors duration-300 pb-20 font-sans">
       <Header title={getTitle()} darkMode={darkMode} setDarkMode={setDarkMode} />
 
       <main className="max-w-2xl mx-auto px-4 py-6">
@@ -76,7 +91,7 @@ const App: React.FC = () => {
                   <input
                     type="text"
                     placeholder="ゲーム、App、ストーリーなど"
-                    className="w-full bg-gray-200 dark:bg-gray-800 border-none rounded-xl py-2.5 px-10 focus:ring-2 focus:ring-blue-500 outline-none dark:text-white"
+                    className="w-full bg-gray-200 dark:bg-gray-800 border-none rounded-xl py-2.5 px-10 focus:ring-2 focus:ring-blue-500 outline-none dark:text-white transition-all"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onFocus={() => setActiveTab('search')}
@@ -94,17 +109,16 @@ const App: React.FC = () => {
                 onAuthClick={() => setShowAuthForm(true)}
                 onSubmitClick={() => setShowSubmitForm(true)}
                 onAppSelect={setSelectedApp}
-                onRefresh={loadApps}
               />
             ) : (
-              <div className="space-y-8">
+              <div className="space-y-8 animate-in fade-in duration-500">
                 {activeTab === 'home' && !searchQuery && allApps.length > 0 && (
                   <section>
                     <div className="bg-gradient-to-br from-indigo-600 to-blue-500 rounded-3xl p-6 text-white shadow-lg shadow-blue-500/20 relative overflow-hidden">
                       <div className="relative z-10">
                         <p className="text-xs font-bold uppercase tracking-wider opacity-80 mb-1">注目のパッケージ</p>
                         <h2 className="text-3xl font-extrabold mb-4">{allApps[0].name}</h2>
-                        <button onClick={() => setSelectedApp(allApps[0])} className="bg-white text-blue-600 px-5 py-2 rounded-full font-bold text-sm">今すぐ入手</button>
+                        <button onClick={() => setSelectedApp(allApps[0])} className="bg-white text-blue-600 px-5 py-2 rounded-full font-bold text-sm active:scale-95 transition-transform">今すぐ入手</button>
                       </div>
                       <div className="absolute right-[-20px] bottom-[-20px] opacity-20 rotate-12 select-none h-40 w-40 flex items-center justify-center" style={{fontSize: '150px'}}>
                         {allApps[0].icon && (allApps[0].icon.startsWith('http') || allApps[0].icon.startsWith('/')) ? (
