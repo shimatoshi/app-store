@@ -172,7 +172,7 @@ const AuthForm = ({ onAuthSuccess, onCancel }) => {
   );
 };
 
-const SubmitForm = ({ onCancel, onSuccess }) => {
+const SubmitForm = ({ onCancel, onSuccess, user }) => {
   const [formData, setFormData] = useState({
     name: '',
     category: 'PWA',
@@ -390,7 +390,7 @@ function App() {
         {showAuthForm ? (
           <AuthForm onAuthSuccess={() => setShowAuthForm(false)} onCancel={() => setShowAuthForm(false)} />
         ) : showSubmitForm ? (
-          <SubmitForm onCancel={() => setShowSubmitForm(false)} onSuccess={handleSuccess} />
+          <SubmitForm onCancel={() => setShowSubmitForm(false)} onSuccess={handleSuccess} user={user} />
         ) : (
           <>
             {/* Search Bar */}
