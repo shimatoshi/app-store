@@ -1,24 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import { getApps, submitApp, signIn, signUp, signOut, getCurrentUser, supabase } from './lib/supabase';
 
-const AppCard = ({ app, onClick }) => (
-  <div 
-    className="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm hover:shadow-lg transition-all cursor-pointer border border-gray-100 dark:border-gray-700 group"
-    onClick={() => onClick(app)}
-  >
-    <div className="text-5xl mb-4 transform group-hover:scale-110 transition-transform duration-200">{app.icon}</div>
-    <h3 className="font-bold text-gray-800 dark:text-gray-100 truncate mb-1">{app.name}</h3>
-    <p className="text-xs text-google-gray dark:text-gray-400 mb-3">{app.category}</p>
-    <div className="flex items-center justify-end">
-      <button className="text-xs bg-blue-50 dark:bg-blue-900/30 text-google-blue dark:text-blue-400 px-3 py-1 rounded-full font-bold group-hover:bg-google-blue group-hover:text-white transition-colors">
-        詳細
-      </button>
+const AppCard = ({ app, onClick }) => {
+  const isImageUrl = app.icon && (app.icon.startsWith('http') || app.icon.startsWith('/'));
+  return (
+    <div 
+      className="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm hover:shadow-lg transition-all cursor-pointer border border-gray-100 dark:border-gray-700 group"
+      onClick={() => onClick(app)}
+    >
+      <div className="text-5xl mb-4 transform group-hover:scale-110 transition-transform duration-200 h-16 w-16 flex items-center justify-center overflow-hidden rounded-xl mx-auto">
+        {isImageUrl ? (
+          <img src={app.icon} alt={app.name} className="w-full h-full object-cover" />
+        ) : (
+          app.icon
+        )}
+      </div>
+      <h3 className="font-bold text-gray-800 dark:text-gray-100 truncate mb-1 text-center">{app.name}</h3>
+      <p className="text-xs text-google-gray dark:text-gray-400 mb-3 text-center">{app.category}</p>
+      <div className="flex items-center justify-end">
+        <button className="text-xs bg-blue-50 dark:bg-blue-900/30 text-google-blue dark:text-blue-400 px-3 py-1 rounded-full font-bold group-hover:bg-google-blue group-hover:text-white transition-colors">
+          詳細
+        </button>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const Modal = ({ app, onClose }) => {
   if (!app) return null;
+  const isImageUrl = app.icon && (app.icon.startsWith('http') || app.icon.startsWith('/'));
   return (
     <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-50 backdrop-blur-sm p-0 sm:p-4">
       <div className="bg-white dark:bg-gray-900 w-full max-w-lg rounded-t-3xl sm:rounded-3xl overflow-hidden max-h-[95vh] flex flex-col shadow-2xl animate-in slide-in-from-bottom duration-300">
@@ -30,8 +40,12 @@ const Modal = ({ app, onClose }) => {
 
         <div className="overflow-y-auto p-6">
           <div className="flex gap-5 mb-8">
-            <div className="text-6xl w-24 h-24 flex items-center justify-center bg-gray-50 dark:bg-gray-800 rounded-2xl shadow-inner">
-              {app.icon}
+            <div className="text-6xl w-24 h-24 flex items-center justify-center bg-gray-50 dark:bg-gray-800 rounded-2xl shadow-inner overflow-hidden">
+              {isImageUrl ? (
+                <img src={app.icon} alt={app.name} className="w-full h-full object-cover" />
+              ) : (
+                app.icon
+              )}
             </div>
             <div className="flex flex-col justify-center flex-1">
               <h2 className="text-2xl font-bold dark:text-white leading-tight mb-1">{app.name}</h2>
@@ -233,11 +247,12 @@ const SubmitForm = ({ onCancel, onSuccess, user }) => {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-bold mb-1 dark:text-gray-300">アイコン (絵文字)</label>
+            <label className="block text-sm font-bold mb-1 dark:text-gray-300">アイコン (絵文字 または 画像URL)</label>
             <input 
-              className="w-full bg-gray-100 dark:bg-gray-800 border-none rounded-xl py-3 px-4 dark:text-white text-center text-2xl"
+              className="w-full bg-gray-100 dark:bg-gray-800 border-none rounded-xl py-3 px-4 dark:text-white"
               value={formData.icon}
               onChange={e => setFormData({...formData, icon: e.target.value})}
+              placeholder="🚀 または https://..."
             />
           </div>
         </div>
@@ -460,12 +475,16 @@ function App() {
                               <p className="text-xs text-gray-500 truncate">{app.category}</p>
                             </div>
                             <button 
-                              onClick={(e) => {
+                              onClick={async (e) => {
                                 e.stopPropagation();
                                 if (confirm('このアプリを削除しますか？')) {
-                                  const { error } = supabase.from('apps').delete().eq('id', app.id);
-                                  if (error) alert(error.message);
-                                  else handleSuccess(); // リスト更新
+                                  try {
+                                    const { error } = await supabase.from('apps').delete().eq('id', app.id);
+                                    if (error) throw error;
+                                    await handleSuccess(); // リスト更新
+                                  } catch (err) {
+                                    alert('削除に失敗しました: ' + err.message);
+                                  }
                                 }
                               }}
                               className="text-red-500 p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
