@@ -1,6 +1,6 @@
 import React from 'react';
 import { User } from '@supabase/supabase-js';
-import { Trash2, ChevronRight } from 'lucide-react';
+import { Trash2, Edit, ChevronRight } from 'lucide-react';
 import { AppData } from '../../types';
 import { useAppsQuery } from '../../hooks/useAppsQuery';
 import Button from '../ui/Button';
@@ -12,9 +12,10 @@ interface ProfileViewProps {
   onAuthClick: () => void;
   onSubmitClick: () => void;
   onAppSelect: (app: AppData) => void;
+  onEditClick: (app: AppData) => void;
 }
 
-const ProfileView: React.FC<ProfileViewProps> = ({ user, allApps, onLogout, onAuthClick, onSubmitClick, onAppSelect }) => {
+const ProfileView: React.FC<ProfileViewProps> = ({ user, allApps, onLogout, onAuthClick, onSubmitClick, onAppSelect, onEditClick }) => {
   const { deleteApp } = useAppsQuery();
 
   return (
@@ -69,17 +70,28 @@ const ProfileView: React.FC<ProfileViewProps> = ({ user, allApps, onLogout, onAu
                     <h4 className="font-bold text-sm dark:text-white truncate">{app.name}</h4>
                     <p className="text-xs text-gray-500 truncate">{app.category}</p>
                   </div>
-                  <button 
-                    onClick={async (e) => {
-                      e.stopPropagation();
-                      if (confirm('このアプリを削除しますか？')) {
-                        await deleteApp(app.id);
-                      }
-                    }}
-                    className="text-red-500 p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                  >
-                      <Trash2 size={18} />
-                  </button>
+                  <div className="flex gap-1">
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEditClick(app);
+                      }}
+                      className="text-blue-500 p-2 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                    >
+                      <Edit size={18} />
+                    </button>
+                    <button 
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        if (confirm('このアプリを削除しますか？')) {
+                          await deleteApp(app.id);
+                        }
+                      }}
+                      className="text-red-500 p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                    >
+                        <Trash2 size={18} />
+                    </button>
+                  </div>
                 </div>
               ))
             ) : (

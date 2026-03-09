@@ -22,6 +22,17 @@ export const useAppsQuery = () => {
     },
   });
 
+  const updateMutation = useMutation({
+    mutationFn: ({ id, app }: { id: string; app: Partial<AppData> }) => updateApp(id, app),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['apps'] });
+      toast.success('アプリを更新しました！');
+    },
+    onError: (error: any) => {
+      toast.error('更新に失敗しました: ' + error.message);
+    },
+  });
+
     const deleteMutation = useMutation({
       mutationFn: async (appId: string) => {
         const { data: { user } } = await supabase.auth.getUser();
@@ -60,7 +71,8 @@ export const useAppsQuery = () => {
     isError: appsQuery.isError,
     error: appsQuery.error,
     submitApp: submitMutation.mutateAsync,
-    isSubmitting: submitMutation.isPending,
+    isSubmitting: submitMutation.isPending || updateMutation.isPending,
+    updateApp: updateMutation.mutateAsync,
     deleteApp: deleteMutation.mutateAsync,
     isDeleting: deleteMutation.isPending,
   };

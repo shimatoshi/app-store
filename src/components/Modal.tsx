@@ -31,7 +31,14 @@ const Modal: React.FC<ModalProps> = ({ app, onClose }) => {
             <div className="flex flex-col justify-center flex-1">
               <h2 className="text-2xl font-bold dark:text-white leading-tight mb-1">{app.name}</h2>
               <p className="text-blue-600 dark:text-blue-400 font-medium text-sm mb-3">{app.category}</p>
-              <button className="bg-blue-600 text-white px-6 py-1.5 rounded-full font-bold text-sm self-start shadow-lg shadow-blue-500/30">
+              <button 
+                onClick={() => {
+                  if (app.link) {
+                    window.open(app.link, '_blank');
+                  }
+                }}
+                className="bg-blue-600 text-white px-6 py-1.5 rounded-full font-bold text-sm self-start shadow-lg shadow-blue-500/30 active:scale-95 transition-transform"
+              >
                 入手
               </button>
             </div>

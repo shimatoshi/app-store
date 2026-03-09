@@ -23,6 +23,7 @@ const App: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [darkMode, setDarkMode] = useState(false);
   const [showSubmitForm, setShowSubmitForm] = useState(false);
+  const [appToEdit, setAppToEdit] = useState<AppData | null>(null);
   const [showAuthForm, setShowAuthForm] = useState(false);
 
   useEffect(() => {
@@ -51,11 +52,12 @@ const App: React.FC = () => {
 
   const handleSuccess = () => {
     setShowSubmitForm(false);
+    setAppToEdit(null);
     setActiveTab('home');
   };
 
   const getTitle = () => {
-    if (showSubmitForm) return '出品';
+    if (showSubmitForm) return appToEdit ? '編集' : '出品';
     if (showAuthForm) return '認証';
     switch (activeTab) {
       case 'home': return '見つける';
@@ -82,7 +84,15 @@ const App: React.FC = () => {
         ) : showAuthForm ? (
           <AuthForm onAuthSuccess={() => setShowAuthForm(false)} onCancel={() => setShowAuthForm(false)} />
         ) : showSubmitForm ? (
-          <SubmitForm onCancel={() => setShowSubmitForm(false)} onSuccess={handleSuccess} user={user} />
+          <SubmitForm 
+            onCancel={() => {
+              setShowSubmitForm(false);
+              setAppToEdit(null);
+            }} 
+            onSuccess={handleSuccess} 
+            user={user} 
+            appToEdit={appToEdit}
+          />
         ) : (
           <>
             {(activeTab === 'search' || activeTab === 'home') && (
@@ -109,6 +119,10 @@ const App: React.FC = () => {
                 onAuthClick={() => setShowAuthForm(true)}
                 onSubmitClick={() => setShowSubmitForm(true)}
                 onAppSelect={setSelectedApp}
+                onEditClick={(app) => {
+                  setAppToEdit(app);
+                  setShowSubmitForm(true);
+                }}
               />
             ) : (
               <div className="space-y-8 animate-in fade-in duration-500">

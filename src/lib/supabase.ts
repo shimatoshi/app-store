@@ -48,6 +48,20 @@ export const submitApp = async (app: Partial<AppData>): Promise<any> => {
   return data;
 };
 
+export const updateApp = async (id: string, app: Partial<AppData>): Promise<any> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('ログインが必要です');
+
+  const { data, error } = await supabase
+    .from('apps')
+    .update(app)
+    .eq('id', id)
+    .eq('user_id', user.id);
+  
+  if (error) throw error;
+  return data;
+};
+
 export const signIn = async (email: string, password: string): Promise<any> => {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) throw error;

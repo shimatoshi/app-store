@@ -8,23 +8,26 @@ import Button from './ui/Button';
 import Input from './ui/Input';
 import toast from 'react-hot-toast';
 
+import { AppData } from '../types';
+
 interface SubmitFormProps {
   onCancel: () => void;
   onSuccess: () => void;
   user: User | null;
+  appToEdit?: AppData | null;
 }
 
-const SubmitForm: React.FC<SubmitFormProps> = ({ onCancel, onSuccess, user }) => {
-  const { submitApp, isSubmitting } = useAppsQuery();
+const SubmitForm: React.FC<SubmitFormProps> = ({ onCancel, onSuccess, user, appToEdit }) => {
+  const { submitApp, updateApp, isSubmitting } = useAppsQuery();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
-    category: CATEGORIES.PWA,
-    description: '',
-    icon: APP_CONFIG.DEFAULT_ICON,
-    link: '',
-    installSteps: ''
+    name: appToEdit?.name || '',
+    category: appToEdit?.category || CATEGORIES.PWA,
+    description: appToEdit?.description || '',
+    icon: appToEdit?.icon || APP_CONFIG.DEFAULT_ICON,
+    link: appToEdit?.link || '',
+    installSteps: (appToEdit?.install_steps || appToEdit?.installSteps || []).join('\n')
   });
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -59,7 +62,7 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ onCancel, onSuccess, user }) =>
     if (isUploading) return;
     
     try {
-      const appToSubmit = {
+      const appData = {
         name: formData.name,
         category: formData.category,
         description: formData.description,
@@ -68,7 +71,12 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ onCancel, onSuccess, user }) =>
         developer_name: user?.email ? user.email.split('@')[0] : 'Unknown',
         install_steps: formData.installSteps.split('\n').filter(s => s.trim() !== '')
       };
-      await submitApp(appToSubmit);
+
+      if (appToEdit) {
+        await updateApp({ id: appToEdit.id, app: appData });
+      } else {
+        await submitApp(appData);
+      }
       onSuccess();
     } catch (err: any) {
       // Error is handled by useAppsQuery mutation
@@ -77,7 +85,9 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ onCancel, onSuccess, user }) =>
 
   return (
     <div className="bg-white dark:bg-gray-900 p-6 rounded-3xl shadow-xl border dark:border-gray-800 animate-in fade-in zoom-in duration-300">
-      <h2 className="text-2xl font-bold mb-6 dark:text-white">アプリを出品する</h2>
+      <h2 className="text-2xl font-bold mb-6 dark:text-white">
+        {appToEdit ? 'アプリを編集する' : 'アプリを出品する'}
+      </h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <Input 
           label="アプリ名"
@@ -172,7 +182,7 @@ const SubmitForm: React.FC<SubmitFormProps> = ({ onCancel, onSuccess, user }) =>
             className="flex-1"
             isLoading={isSubmitting || isUploading}
           >
-            出品する
+            {appToEdit ? '更新する' : '出品する'}
           </Button>
         </div>
       </form>
